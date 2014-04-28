@@ -29,6 +29,15 @@ def isiterable(foo):
         return True
 
 
+
+class AvalaraJSONEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, decimal.Decimal):
+            return float(obj)
+
+        return super(AvalaraJSONEncoder, self).default(obj)
+
+
 class AvalaraLogging(object):
     logger = None
 
@@ -172,7 +181,7 @@ class BaseAPI(object):
 
     def _request(self, http_method, stem, data={}, params={}):
         url = '%s/%s' % (self.url, stem)
-        data = json.dumps(data)
+        data = json.dumps(data, cls=AvalaraJSONEncoder)
         # getting rid of control characters
         # that JSON will error out on
         data = data.replace('\\r', ' ')
