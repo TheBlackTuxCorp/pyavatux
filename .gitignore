@@ -5,3 +5,7 @@ docs/build
 build/
 dist/
 settings_local.py
+lib/
+bin/
+.Python
+include/
