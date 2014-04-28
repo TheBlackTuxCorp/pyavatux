@@ -157,10 +157,10 @@ def test_validation():
     assert e.value.code == AvalaraException.CODE_BAD_DATE
     with pytest.raises(AvalaraValidationException) as e:
         line = Line(Qty='foo')  # testing int
-    assert e.value.code == AvalaraException.CODE_BAD_FLOAT
+    assert e.value.code == AvalaraException.CODE_BAD_DECIMAL
     with pytest.raises(AvalaraValidationException) as e:
-        line = Line(Amount='foo')  # testing float
-    assert e.value.code == AvalaraException.CODE_BAD_FLOAT
+        line = Line(Amount='foo')  # testing decimal
+    assert e.value.code == AvalaraException.CODE_BAD_DECIMAL
     with pytest.raises(AvalaraValidationException) as e:
         line = Line(ItemCode='this string is longer than fifty characters and should be stopped')  # testing length
     assert e.value.code == AvalaraException.CODE_TOO_LONG
