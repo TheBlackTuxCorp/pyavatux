@@ -2,6 +2,7 @@ import datetime
 import logging
 import json
 import six
+import decimal
 
 import requests
 from pyavatax.django_integration import get_django_recorder
@@ -26,6 +27,15 @@ def isiterable(foo):
         return False
     else:
         return True
+
+
+
+class AvalaraJSONEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, decimal.Decimal):
+            return float(obj)
+
+        return super(AvalaraJSONEncoder, self).default(obj)
 
 
 class AvalaraLogging(object):
@@ -171,7 +181,7 @@ class BaseAPI(object):
 
     def _request(self, http_method, stem, data={}, params={}):
         url = '%s/%s' % (self.url, stem)
-        data = json.dumps(data)
+        data = json.dumps(data, cls=AvalaraJSONEncoder)
         # getting rid of control characters
         # that JSON will error out on
         data = data.replace('\\r', ' ')
@@ -282,7 +292,7 @@ class AvalaraException(AvalaraBaseException):
     CODE_INVALID_FIELD = 301
     CODE_BAD_DOCTYPE = 302
     CODE_BAD_DATE = 303
-    CODE_BAD_FLOAT = 304
+    CODE_BAD_DECIMAL = 304
     CODE_BAD_BOOL = 305
     CODE_BAD_ORIGIN = 306
     CODE_BAD_DEST = 307
@@ -307,7 +317,7 @@ class AvalaraValidationException(AvalaraException):
 
 class AvalaraServerNotReachableException(AvalaraBaseException):
     """Raised when the AvaTax service is unreachable for any reason and no response is received"""
-    
+
     def __init__(self, request_exception, *args, **kwargs):
         self.request_exception = request_exception
 
@@ -433,9 +443,9 @@ class Document(AvalaraBase):
             raise AvalaraValidationException(AvalaraException.CODE_BAD_DOCTYPE, '%s is not a valid DocType' % doc_type)
 
     @staticmethod
-    def _clean_float(f):
-        if f and not isinstance(f, float):
-            return float(f)
+    def _clean_decimal(f):
+        if f and not isinstance(f, decimal.Decimal):
+            return decimal.Decimal(f)
         elif f is None:
             return 0
         else:
@@ -468,10 +478,10 @@ class Document(AvalaraBase):
     def clean_Discount(self):
         discount = getattr(self, 'Discount', None)
         try:
-            f = Document._clean_float(discount)
+            f = Document._clean_decimal(discount)
             setattr(self, 'Discount', f)
         except ValueError:
-            raise AvalaraValidationException(AvalaraException.CODE_BAD_FLOAT, 'Discount should either be a float, or string that is parsable into a float')
+            raise AvalaraValidationException(AvalaraException.CODE_BAD_DECIMAL, 'Discount should either be a float, or string that is parsable into a float')
 
     def clean_Commit(self):
         commit = getattr(self, 'Commit', None)
@@ -635,10 +645,10 @@ class TaxOverride(AvalaraBase):
     def clean_TaxAmount(self):
         amount = getattr(self, 'TaxAmount', None)
         try:
-            f = Document._clean_float(amount)
+            f = Document._clean_decimal(amount)
             setattr(self, 'TaxAmount', f)
         except ValueError:
-            raise AvalaraValidationException(AvalaraException.CODE_BAD_FLOAT, 'TaxAmount should either be a float, or string that is parsable into a float')
+            raise AvalaraValidationException(AvalaraException.CODE_BAD_DECIMAL, 'TaxAmount should either be a decimal, or string that is parsable into a decimal')
 
 
 class Line(AvalaraBase):
@@ -660,15 +670,15 @@ class Line(AvalaraBase):
             i = Document._clean_int(qty)
             setattr(self, 'Qty', i)
         except ValueError:
-            raise AvalaraValidationException(AvalaraException.CODE_BAD_FLOAT, 'Qty should either be a float, or string that is parsable into a float')
+            raise AvalaraValidationException(AvalaraException.CODE_BAD_DECIMAL, 'Qty should either be a float, or string that is parsable into a float')
 
     def clean_Amount(self):
         amount = getattr(self, 'Amount', None)
         try:
-            f = Document._clean_float(amount)
+            f = Document._clean_decimal(amount)
             setattr(self, 'Amount', f)
         except ValueError:
-            raise AvalaraValidationException(AvalaraException.CODE_BAD_FLOAT, 'Amount should either be a float, or string that is parsable into a float')
+            raise AvalaraValidationException(AvalaraException.CODE_BAD_DECIMAL, 'Amount should either be a decimal, or string that is parsable into a decimal')
 
     def clean_ItemCode(self):
         code = getattr(self, 'ItemCode', None)

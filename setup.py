@@ -6,10 +6,10 @@ from setuptools import setup, find_packages
 version = __import__('pyavatax').__version__
 
 setup(
-    name='PyAvaTax',
-    url = 'http://github.com/activefrequency/pyavatax/',
-    author = 'John Obelenus',
-    author_email = 'jobelenus@activefrequency.com',
+    name='PyAvaTax-TBT',
+    url = 'http://github.com/lionheart/pyavatax/',
+    author = 'Dan Loewenherz',
+    author_email = 'dan@lionheartsw.com',
     version=version,
     install_requires = ['requests>=2.5.3,<3', 'decorator>=3.4.0', 'six>=1.9.0'],
     package_data = {
